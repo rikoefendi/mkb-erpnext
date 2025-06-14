@@ -125,7 +125,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-admin}
     volumes:
-      - db-data:/var/lib/mysql
+      - ${DB_LOCAL_PATH:-db-data}:/var/lib/mysql
 
   frontend:
     image: ${FRAPPE_IMAGE:-custom-frappe:latest}
