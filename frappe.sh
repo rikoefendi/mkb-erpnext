@@ -5,13 +5,13 @@
 # and deploy them using docker-compose
 
 set -e
-
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/.env"
 CONFIG_FILE="${SCRIPT_DIR}/apps.json"
 DOCKER_COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
 DOCKERFILE="${SCRIPT_DIR}/Dockerfile"
-IMAGE_NAME="custom-frappe"
+IMAGE_NAME="${FRAPPE_IMAGE}"
 IMAGE_TAG="latest"
 GHCR_REGISTRY="ghcr.io"
 
@@ -197,7 +197,7 @@ push_to_ghcr() {
         tag="$IMAGE_TAG"
     fi
     
-    local local_image="${IMAGE_NAME}:${tag}"
+    local local_image="${IMAGE_NAME}"
     local remote_image="${GHCR_REGISTRY}/${username}/${repo}:${tag}"
     
     print_status "Pushing image to GHCR..."
@@ -206,7 +206,7 @@ push_to_ghcr() {
     
     # Check if local image exists
     if ! docker image inspect "$local_image" >/dev/null 2>&1; then
-        print_error "Local image '$local_image' not found. Build it first with: $0 build -t $tag"
+        print_error "Local image '$local_image' not found. Build it first with: $0 build -t latest"
         return 1
     fi
     
