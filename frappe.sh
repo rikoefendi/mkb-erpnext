@@ -288,13 +288,13 @@ deploy_services() {
     fi
     
     # Update image name in docker-compose.yml if needed
-    if command -v envsubst >/dev/null 2>&1; then
-        export FRAPPE_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
-        envsubst < "${DOCKER_COMPOSE_FILE}" > "${DOCKER_COMPOSE_FILE}.tmp"
-        mv "${DOCKER_COMPOSE_FILE}.tmp" "${DOCKER_COMPOSE_FILE}"
-    fi
+    # if command -v envsubst >/dev/null 2>&1; then
+    #     export FRAPPE_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
+    #     envsubst '${FRAPPE_IMAGE}' < "${DOCKER_COMPOSE_FILE}" > "${DOCKER_COMPOSE_FILE}.tmp"
+    #     mv "${DOCKER_COMPOSE_FILE}.tmp" "${DOCKER_COMPOSE_FILE}"
+    # fi
     
-    docker-compose -f "${DOCKER_COMPOSE_FILE}" up -d
+    docker compose -f "${DOCKER_COMPOSE_FILE}" up --build
     
     print_success "Services deployed successfully!"
     print_status "Access your Frappe instance at: http://localhost:8080"
@@ -303,20 +303,20 @@ deploy_services() {
 # Stop services
 stop_services() {
     print_status "Stopping Frappe services..."
-    docker-compose -f "${DOCKER_COMPOSE_FILE}" stop
+    docker compose -f "${DOCKER_COMPOSE_FILE}" stop
     print_success "Services stopped"
 }
 
 # Remove services
 down_services() {
     print_status "Stopping and removing Frappe services..."
-    docker-compose -f "${DOCKER_COMPOSE_FILE}" down
+    docker compose -f "${DOCKER_COMPOSE_FILE}" down
     print_success "Services removed"
 }
 
 # Show logs
 show_logs() {
-    docker-compose -f "${DOCKER_COMPOSE_FILE}" logs -f "$@"
+    docker compose -f "${DOCKER_COMPOSE_FILE}" logs -f "$@"
 }
 
 # Execute command in backend container

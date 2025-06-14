@@ -57,6 +57,7 @@ services:
         wait-for-it -t 120 db:3306;
         wait-for-it -t 120 redis-cache:6379;
         wait-for-it -t 120 redis-queue:6379;
+        echo $${DB_PASSWORD};
         export start=`date +%s`;
         until [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".db_host // empty"` ]] && 
           [[ -n `grep -hs ^ sites/common_site_config.json | jq -r ".redis_cache // empty"` ]] && 
@@ -72,10 +73,12 @@ services:
         echo "sites/common_site_config.json found";
         if [ ! -d "sites/$${SITE_NAME}" ]; then
           echo "Creating site: $${SITE_NAME}";
-          bench new-site $${SITE_NAME} 
-            --no-mariadb-socket 
-            --admin-password=$${ADMIN_PASSWORD} 
-            --db-root-password=$${DB_PASSWORD} 
+          bench new-site $${SITE_NAME} \
+            --mariadb-user-host-login-scope='%' \
+            --admin-password=$${ADMIN_PASSWORD} \
+            --db-password=$${DB_PASSWORD} \
+            --db-name=$${DB_NAME} \
+            --db-root-password=$${DB_ROOT_PASSWORD} \
             --set-default;
           # Install apps found in apps directory
           for app_dir in apps/*/; do
@@ -88,10 +91,18 @@ services:
         else
           echo "Site $${SITE_NAME} already exists, skipping creation";
         fi;
+        echo "Rebuild dependecies";
+        bench --site $${SITE_NAME} build;
+        echo "migrating";
+        bench --site $${SITE_NAME} migrate;
+        echo "restart services";
+        bench restart;
     environment:
       SITE_NAME: ${SITE_NAME:-frontend}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      DB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-admin}
       DB_PASSWORD: ${DB_PASSWORD:-admin}
+      DB_NAME: ${DB_NAME:-frappe}
     depends_on:
       - configurator
 
@@ -99,7 +110,7 @@ services:
     image: mariadb:11.2
     restart: unless-stopped
     healthcheck:
-      test: mysqladmin ping -h localhost --password=${DB_PASSWORD:-admin}
+      test: mysqladmin ping -h localhost --password=${MYSQL_ROOT_PASSWORD:-admin}
       interval: 5s
       retries: 30
       start_period: 30s
@@ -112,10 +123,7 @@ services:
       - --innodb-buffer-pool-size=256M
       - --max-connections=200
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-admin}
-      MYSQL_DATABASE: frappe
-      MYSQL_USER: frappe
-      MYSQL_PASSWORD: ${DB_PASSWORD:-admin}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-admin}
     volumes:
       - db-data:/var/lib/mysql
 
