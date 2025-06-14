@@ -260,7 +260,7 @@ validate_apps_config() {
 build_image() {
     local tag="${1:-${IMAGE_TAG}}"
     
-    print_status "Building Frappe Docker image with tag: ${IMAGE_NAME}:${tag}"
+    print_status "Building Frappe Docker image with tag: ${IMAGE_NAME}"
     
     validate_apps_config
     
@@ -271,11 +271,11 @@ build_image() {
     # Build the image
     docker build \
         --build-arg APPS_JSON_BASE64="${apps_json_base64}" \
-        --tag "${IMAGE_NAME}:${tag}" \
+        --tag "${IMAGE_NAME}" \
         --file "${DOCKERFILE}" \
         .
     
-    print_success "Docker image built successfully: ${IMAGE_NAME}:${tag}"
+    print_success "Docker image built successfully: ${IMAGE_NAME}"
 }
 
 # Deploy services
