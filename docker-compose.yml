@@ -92,7 +92,6 @@ services:
           echo "Site $${SITE_NAME} already exists, skipping creation";
         fi;
         echo "Rebuild dependecies";
-        bench --site $${SITE_NAME} build;
         echo "migrating";
         bench --site $${SITE_NAME} migrate;
         echo "restart services";
